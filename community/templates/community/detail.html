@@ -1,0 +1,10 @@
+<h1>{{post.title}}</h1>
+<p>{{post.content}}</p>
+<p><small>{{post.pub_date}}</small></p>
+comments
+<ul>
+{% for comment in post.comment_set.all %}
+<li>{{comment.content}}</li>
+    <p><small>{{comment.pub_date}}</small></p>
+{% endfor %}
+</ul>
