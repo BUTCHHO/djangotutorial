@@ -1,7 +1,7 @@
-from django.shortcuts import render
-from django.http import HttpResponse, Http404
-from .models import Question
-
+from django.shortcuts import render, reverse
+from django.http import HttpRequest, HttpResponse, Http404, HttpResponseRedirect
+from .models import Question, Choice
+from django.db.models import F
 
 def index(request):
     latest_questions = Question.objects.order_by("-pub_date")[:5]
@@ -28,7 +28,17 @@ def results(request, question_id):
 
 def vote(request, question_id):
     try:
-        question = Question.objects.get(pk=question_id)
-    except Question.DoesNotExist:
-        raise Http404(f"Question with id {question_id} does not exist")
-    return HttpResponse(f"The voting page for question {question} with id {question_id}")
+        choice_id = request.POST["choice"]
+    except KeyError:
+        try:
+            question = Question.objects.get(question_id)
+        except Question.DoesNotExist:
+            raise Http404("Question does not exist")
+        return render(request,"detail.html",{"question": question, "error_message":"You did not make choice"})
+    try:
+        choice = Choice.objects.get(pk=choice_id)
+    except Choice.DoesNotExist:
+        raise Http404("Choice does not exist")
+    choice.votes = F("votes") + 1
+    choice.save()
+    return HttpResponseRedirect(reverse("polls:results", args=(question_id,)))

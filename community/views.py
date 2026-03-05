@@ -1,4 +1,5 @@
 from django.http import HttpResponse, Http404
+from django.db.models import F
 from django.shortcuts import render
 
 from .models import Post
@@ -13,5 +14,7 @@ def detail(request, post_id):
         post = Post.objects.get(id=post_id)
     except Post.DoesNotExist:
         raise Http404("Requested post does not exist")
+    post.views = F("views") + 1
+    post.save()
     context = {"post":post}
     return render(request, "community/detail.html", context)
