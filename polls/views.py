@@ -1,5 +1,6 @@
 from django.shortcuts import render, reverse, get_object_or_404
-from django.http import HttpRequest, HttpResponse, Http404, HttpResponseRedirect
+from django.http import HttpResponseRedirect
+from django.utils import timezone
 from .models import Question, Choice
 from django.db.models import F
 from django.views import generic
@@ -8,8 +9,14 @@ class IndexView(generic.ListView):
     template_name = "polls/index.html"
     context_object_name = "latest_question_list"
 
+    no_polls_message = "No polls available."
+
+    extra_context = {"no_polls_message": no_polls_message}
+
+    queryset_offset = 5
+
     def get_queryset(self):
-        return Question.objects.order_by("-pub_date")[:5]
+        return Question.objects.filter(pub_date__lte=timezone.now()).order_by("pub_date")[:IndexView.queryset_offset]
 
 class DetailView(generic.DetailView):
     model = Question
