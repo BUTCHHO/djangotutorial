@@ -1,9 +1,9 @@
 from django.shortcuts import render, reverse, get_object_or_404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.utils import timezone
 from .models import Question, Choice
 from django.db.models import F
-from django.views import generic
+from django.views import generic, View
 
 class IndexView(generic.ListView):
     template_name = "polls/index.html"
@@ -31,14 +31,19 @@ class ResultsView(generic.DetailView):
         model = Question
         template_name = "polls/results.html"
 
-def vote(request, question_id):
-    try:
-        choice_id = request.POST["choice"]
-    except KeyError:
-        question = get_object_or_404(Question, pk=question_id)
-        return render(request,"detail.html",{"question": question, "error_message":"You did not make choice"})
-    choice = get_object_or_404(Choice, pk=choice_id)
-    choice.votes = F("votes") + 1
-    choice.save()
-    return HttpResponseRedirect(reverse("polls:results", args=(question_id,)))
+class VoteView(View):
+    vote_future_question_message = "Cant vote for future question."
+    def post(self, request, question_id):
+        try:
+            choice_id = request.POST["choice"]
+            choice = get_object_or_404(Choice, pk=choice_id)
+            if choice.question.is_pub_date_future():
+                return HttpResponse(VoteView.vote_future_question_message)
+        except KeyError:
+            question = get_object_or_404(Question, pk=question_id)
+            return render(request,"detail.html",{"question": question, "error_message":"You did not make choice"})
+        choice.votes = F("votes") + 1
+        choice.save()
+        return HttpResponseRedirect(reverse("polls:results", args=(question_id,)))
+
 

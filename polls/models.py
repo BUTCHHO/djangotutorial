@@ -17,6 +17,11 @@ class Question(models.Model):
         time_now = timezone.now()
         return time_now >= self.pub_date >= time_now - datetime.timedelta(days=Question.recent_days)
 
+    def is_pub_date_future(self):
+        if self.pub_date > timezone.now():
+            return True
+        return False
+
 
 class Choice(models.Model):
     question = models.ForeignKey(Question, models.CASCADE)

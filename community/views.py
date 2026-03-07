@@ -1,7 +1,7 @@
 from django.http import HttpResponse, Http404
 from django.db.models import F
 from django.shortcuts import render, get_object_or_404
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, View
 
 from .models import Post
 

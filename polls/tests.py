@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.utils import timezone
 from django.shortcuts import reverse
-from .views import IndexView, DetailView
+from .views import IndexView, DetailView, VoteView
 
 from datetime import timedelta
 
@@ -92,3 +92,19 @@ class QuestionDetailViewTests(TestCase):
         self.assertNotContains(response, DetailView.no_choice_message)
         self.assertContains(response, choice_1.choice_text)
         self.assertContains(response, choice_2.choice_text)
+
+class QuestionVoteViewTests(TestCase):
+    def test_votes_increment(self):
+        question = create_question('question', -10)
+        choice = create_choice(question, 'choice', 0)
+        self.client.post(reverse('polls:vote', args=(question.id,)),data={"choice":choice.id})
+        choice_after_vote = Choice.objects.get(pk=choice.id)
+        self.assertEqual(choice_after_vote.votes, 1)
+
+    def test_votes_dont_increment_for_future_questions(self):
+        question = create_question('question', 10)
+        choice = create_choice(question, 'choice', 0)
+        response = self.client.post(reverse('polls:vote', args=(question.id,)),data={"choice":choice.id})
+        choice_after_vote = Choice.objects.get(pk=choice.id)
+        self.assertEqual(choice_after_vote.votes, 0)
+        self.assertContains(response, VoteView.vote_future_question_message)
