@@ -1,6 +1,10 @@
-<ul>
-{% for post in posts %}
-<li><a href="{% url 'community:detail' post.id %}">{{ post.title }}</a></li>
-    <p><small>{{post.views}}</small></p>
-{% endfor %}
-</ul>
+{% if posts %}
+    <ul>
+    {% for post in posts %}
+    <li><a href="{% url 'community:detail' post.id %}">{{ post.title }}</a></li>
+        <p><small>{{post.views}}</small></p>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>{{ no_posts_message }}</p>
+{% endif %}
