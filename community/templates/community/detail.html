@@ -1,10 +1,17 @@
-<h1>{{post.title}}</h1>
-<p>{{post.content}}</p>
-<p><small>{{post.pub_date}}</small></p>
-comments
-<ul>
-{% for comment in post.comment_set.all %}
-<li>{{comment.content}}</li>
-    <p><small>{{comment.pub_date}}</small></p>
-{% endfor %}
-</ul>
+{% if post %}
+    <h1>{{post.title}}</h1>
+    <p>{{post.content}}</p>
+    <p><small>likes {{post.likes}}</small></p>
+    <p><small>dislikes {{post.dislikes}}</small></p>
+    <p><small>{{post.pub_date}}</small></p>
+    <p><small>rating {{post.get_rating}}</small></p>
+    comments
+    <ul>
+    {% for comment in post.comment_set.all %}
+    <li>{{comment.content}}</li>
+        <p><small>{{comment.pub_date}}</small></p>
+    {% endfor %}
+    </ul>
+{% else %}
+<p>{{no_post_available_message}}</p>
+{% endif %}

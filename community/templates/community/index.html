@@ -3,6 +3,7 @@
     {% for post in posts %}
     <li><a href="{% url 'community:detail' post.id %}">{{ post.title }}</a></li>
         <p><small>{{post.views}}</small></p>
+        <p><small>rating {{post.get_rating}}</small></p>
     {% endfor %}
     </ul>
 {% else %}

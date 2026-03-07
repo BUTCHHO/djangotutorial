@@ -18,6 +18,9 @@ class Post(models.Model):
     def is_pub_date_future(self):
         return self.pub_date > timezone.now()
 
+    def get_rating(self):
+        return self.likes + self.dislikes
+
 class Comment(models.Model):
     post = models.ForeignKey(Post, models.CASCADE)
     content = models.CharField(max_length=256)
