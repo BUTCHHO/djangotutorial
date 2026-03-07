@@ -1,15 +1,19 @@
 from django.test import TestCase
 from django.utils import timezone
 from django.shortcuts import reverse
-from .views import IndexView
+from .views import IndexView, DetailView
 
 from datetime import timedelta
 
-from .models import Question
+from .models import Question, Choice
+
 
 def create_question(question_text, days):
     date = timezone.now() + timedelta(days=days)
     return Question.objects.create(text=question_text, pub_date=date)
+
+def create_choice(question, text, votes):
+     return Choice.objects.create(question=question, choice_text=text, votes=0)
 
 class QuestionModelTests(TestCase):
     def test_was_published_recently_with_recent_question(self):
@@ -63,5 +67,28 @@ class QuestionIndexViewTests(TestCase):
         response_question_list = response.context["latest_question_list"]
         self.assertLessEqual(len(response_question_list), offset)
 
+class QuestionDetailViewTests(TestCase):
+    def test_future_question_details_not_displayed(self):
+        future_question = create_question("future question", 10)
+        response = self.client.get(reverse("polls:detail", args=(future_question.id,)))
+        self.assertEqual(response.status_code, 404)
 
+    def test_past_question_displayed(self):
+        past_question = create_question("past_question", -10)
+        response = self.client.get(reverse("polls:detail", args=(past_question.id,)))
+        self.assertContains(response, past_question.text)
 
+    def test_no_choice_message_displayed_if_no_choice(self):
+        question = create_question("past question", -10)
+        response = self.client.get(reverse("polls:detail", args=(question.id,)))
+        self.assertContains(response, DetailView.no_choice_message)
+        self.assertIs(response.context['question'].choice_set.exists(), False)
+
+    def test_choices_displayed_without_no_choice_message(self):
+        question = create_question("past question", -10)
+        choice_1 = create_choice(question, 'choice 1', 0)
+        choice_2 = create_choice(question, "choice 2", 0)
+        response = self.client.get(reverse('polls:detail', args=(question.id,)))
+        self.assertNotContains(response, DetailView.no_choice_message)
+        self.assertContains(response, choice_1.choice_text)
+        self.assertContains(response, choice_2.choice_text)

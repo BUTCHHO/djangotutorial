@@ -21,6 +21,11 @@ class IndexView(generic.ListView):
 class DetailView(generic.DetailView):
     model = Question
     template_name = "polls/detail.html"
+    no_choice_message = "No choices available for this question"
+    extra_context = {"no_choice_message": no_choice_message}
+
+    def get_queryset(self):
+        return Question.objects.filter(pub_date__lte = timezone.now())
 
 class ResultsView(generic.DetailView):
         model = Question
@@ -36,3 +41,4 @@ def vote(request, question_id):
     choice.votes = F("votes") + 1
     choice.save()
     return HttpResponseRedirect(reverse("polls:results", args=(question_id,)))
+
