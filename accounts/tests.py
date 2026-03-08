@@ -21,3 +21,7 @@ class UserModelTest(TestCase):
             create_user(username=f'user_{i}')
         deleted_user = User.get_deleted_user()
         self.assertEqual(deleted_user.username, 'Deleted user')
+
+    def test_get_testificate_user_returns_testificate(self):
+        testificate_user = User.get_testificate_user()
+        self.assertEqual(testificate_user.username, 'Testificate user')

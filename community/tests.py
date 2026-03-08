@@ -9,6 +9,8 @@ from .models import Post, Comment
 
 from .views import IndexView, DetailView, CreateCommentView
 
+from accounts.models import User
+
 
 def create_post(days, title='post', content='post content', views=0, likes=0, dislikes=0):
     date = timezone.now() + timedelta(days=days)
@@ -18,7 +20,7 @@ def create_post(days, title='post', content='post content', views=0, likes=0, di
                                views=views,
                                likes=likes,
                                dislikes=dislikes,
-
+                               author=User.get_testificate_user(),
                             )
 
 def create_comment(post, days, content='comment content'):
@@ -27,9 +29,11 @@ def create_comment(post, days, content='comment content'):
         post=post,
         content=content,
         pub_date=pub_date,
+        author=User.get_testificate_user(),
     )
 
-
+def create_user():
+    return User.objects.create_user('testificate',password='psw')
 
 class PostModelTests(TestCase):
     def test_rating_negative_if_more_dislikes(self):
@@ -134,12 +138,16 @@ class CommentCreationViewTest(TestCase):
     def test_new_comment_being_displayed(self):
         post = create_post(-1)
         comment_content = 'new comment'
+        user = create_user()
+        self.client.login(username=user.username, password='psw')
         response = self.client.post(reverse('community:create_comment', args=(post.id,)),data={'comment_content': comment_content})
         self.assertContains(response, comment_content)
 
     def test_future_posts_are_not_commentable(self):
         post = create_post(1)
         comment_content = 'comment for future post'
+        user = create_user()
+        self.client.login(username=user.username, password='psw')
         response = self.client.post(reverse('community:create_comment', args=(post.id,)),data={'comment_content':comment_content})
         post.refresh_from_db()
         self.assertEqual(post.comment_set.count(), 0)
@@ -149,6 +157,8 @@ class CommentCreationViewTest(TestCase):
 
     def test_error_message_displayed_if_comment_content_empty(self):
         post = create_post(-1)
+        user = create_user()
+        self.client.login(username=user.username, password='psw')
         response = self.client.post(reverse('community:create_comment', args=(post.id,)))
         post.refresh_from_db()
         self.assertEqual(post.comment_set.count(), 0)

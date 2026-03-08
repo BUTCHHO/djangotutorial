@@ -1,5 +1,8 @@
 from django.db import models
 from django.utils import timezone
+
+from accounts.models import User
+
 import datetime
 
 class Post(models.Model):
@@ -9,6 +12,7 @@ class Post(models.Model):
     views = models.IntegerField(default=0)
     likes = models.IntegerField(default=0)
     dislikes = models.IntegerField(default=0)
+    author = models.ForeignKey('accounts.User', on_delete=models.SET(User.get_deleted_user))
 
     recent_days = 1
 
@@ -25,3 +29,4 @@ class Comment(models.Model):
     post = models.ForeignKey(Post, models.CASCADE)
     content = models.CharField(max_length=256)
     pub_date = models.DateTimeField()
+    author = models.ForeignKey('accounts.User', on_delete=models.SET(User.get_deleted_user))

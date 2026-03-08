@@ -1,5 +1,5 @@
 from django.db.models import F
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpRequest
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import ListView, View
 from django.shortcuts import reverse
@@ -55,8 +55,13 @@ class DislikeView(View):
 class CreateCommentView(View):
     empty_comment_content_message = "Comment content cant be empty"
     cant_comment_future_posts_message = 'No posts available to comment'
-    def post(self, request, post_id):
+    must_auth_to_create_comment_message = 'You must authenticate to leave a comment'
+    def post(self, request: HttpRequest, post_id):
         post = get_object_or_404(Post, pk=post_id)
+
+        if not request.user.is_authenticated:
+            return render(request, 'community/detail.html', context={'post': post, 'error_message': CreateCommentView.must_auth_to_create_comment_message})
+        user = request.user
         if post.is_pub_date_future():
             return HttpResponse(CreateCommentView.cant_comment_future_posts_message, status=404)
         try:
@@ -65,7 +70,7 @@ class CreateCommentView(View):
             return render(request, 'community/detail.html', context={'post': post, 'error_message': CreateCommentView.empty_comment_content_message})
         if comment_content == '':
             return render(request, 'community/detail.html', context={'post': post, 'error_message': CreateCommentView.empty_comment_content_message})
-        comment = Comment(post=post, content=comment_content, pub_date=timezone.now())
+        comment = Comment(post=post, content=comment_content, pub_date=timezone.now(), author=user)
         comment.save()
         post.refresh_from_db()
         return render(request,'community/detail.html', {"post":post})

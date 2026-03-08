@@ -7,13 +7,15 @@ from datetime import timedelta
 
 from .models import Question, Choice
 
+from accounts.models import User
+
 
 def create_question(question_text, days):
     date = timezone.now() + timedelta(days=days)
-    return Question.objects.create(text=question_text, pub_date=date)
+    return Question.objects.create(text=question_text, pub_date=date, author=User.get_testificate_user())
 
 def create_choice(question, text, votes):
-     return Choice.objects.create(question=question, choice_text=text, votes=0)
+     return Choice.objects.create(question=question, choice_text=text, votes=0, author=User.get_deleted_user())
 
 class QuestionModelTests(TestCase):
     def test_was_published_recently_with_recent_question(self):
