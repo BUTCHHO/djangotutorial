@@ -19,7 +19,7 @@ class Post(models.Model):
         return self.pub_date > timezone.now()
 
     def get_rating(self):
-        return self.likes + self.dislikes
+        return self.likes - self.dislikes
 
 class Comment(models.Model):
     post = models.ForeignKey(Post, models.CASCADE)

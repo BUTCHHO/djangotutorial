@@ -5,7 +5,7 @@ from django.views.generic import ListView, View
 from django.shortcuts import reverse
 from django.utils import timezone
 
-from .models import Post
+from .models import Post, Comment
 
 class IndexView(ListView):
     template_name = "community/index.html"
@@ -51,3 +51,19 @@ class DislikeView(View):
         post.save()
         post.refresh_from_db()
         return render(request, 'community/detail.html',{'post':post})
+
+class CreateCommentView(View):
+    empty_comment_content_message = "Comment content cant be empty"
+    cant_comment_future_posts_message = 'No posts available to comment'
+    def post(self, request, post_id):
+        post = get_object_or_404(Post, pk=post_id)
+        if post.is_pub_date_future():
+            return HttpResponse(CreateCommentView.cant_comment_future_posts_message, status=404)
+        try:
+            comment_content = request.POST['comment_content']
+        except KeyError:
+            return render(request, 'community/detail.html', context={'post': post, 'error_message': CreateCommentView.empty_comment_content_message})
+        comment = Comment(post=post, content=comment_content, pub_date=timezone.now())
+        comment.save()
+        post.refresh_from_db()
+        return render(request,'community/detail.html', {"post":post})

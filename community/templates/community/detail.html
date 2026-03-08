@@ -1,10 +1,19 @@
 {% if post %}
     <h1>{{post.title}}</h1>
     <p>{{post.content}}</p>
+    <form action="{% url 'community:like' post.id %}" method="post">
+    {% csrf_token %}
+    <input type="submit" value="Like">
+    </form>
     <p><small>likes {{post.likes}}</small></p>
+    <form action="{% url 'community:dislike' post.id %}" method="post">
+    {% csrf_token %}
+    <input type="submit" value="Dislike">
+    </form>
     <p><small>dislikes {{post.dislikes}}</small></p>
     <p><small>{{post.pub_date}}</small></p>
     <p><small>rating {{post.get_rating}}</small></p>
+    <p><strong>{{error_message}}</strong></p>
     comments
     <ul>
     {% for comment in post.comment_set.all %}

@@ -33,6 +33,7 @@ class ResultsView(generic.DetailView):
 
 class VoteView(View):
     vote_future_question_message = "Cant vote for future question."
+    no_choice_made_message = 'You did not make choice'
     def post(self, request, question_id):
         try:
             choice_id = request.POST["choice"]
@@ -41,7 +42,7 @@ class VoteView(View):
                 return HttpResponse(VoteView.vote_future_question_message)
         except KeyError:
             question = get_object_or_404(Question, pk=question_id)
-            return render(request,"detail.html",{"question": question, "error_message":"You did not make choice"})
+            return render(request,"polls/detail.html",{"question": question, "error_message":VoteView.no_choice_made_message})
         choice.votes = F("votes") + 1
         choice.save()
         return HttpResponseRedirect(reverse("polls:results", args=(question_id,)))
