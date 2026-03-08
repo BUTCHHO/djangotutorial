@@ -63,6 +63,8 @@ class CreateCommentView(View):
             comment_content = request.POST['comment_content']
         except KeyError:
             return render(request, 'community/detail.html', context={'post': post, 'error_message': CreateCommentView.empty_comment_content_message})
+        if comment_content == '':
+            return render(request, 'community/detail.html', context={'post': post, 'error_message': CreateCommentView.empty_comment_content_message})
         comment = Comment(post=post, content=comment_content, pub_date=timezone.now())
         comment.save()
         post.refresh_from_db()

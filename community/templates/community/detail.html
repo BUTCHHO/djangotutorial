@@ -15,6 +15,12 @@
     <p><small>rating {{post.get_rating}}</small></p>
     <p><strong>{{error_message}}</strong></p>
     comments
+    <form action="{% url 'community:create_comment' post.id %}" method="post">
+        {% csrf_token %}
+        <textarea name="comment_content" placeholder="Enter comment"></textarea>
+        <br>
+        <input type="submit" value="Send comment">
+    </form>
     <ul>
     {% for comment in post.comment_set.all %}
     <li>{{comment.content}}</li>
