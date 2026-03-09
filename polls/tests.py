@@ -9,6 +9,7 @@ from .models import Question, Choice
 
 from accounts.models import User
 
+from utils.test.login_client import login_client
 
 def create_question(question_text, days):
     date = timezone.now() + timedelta(days=days)
@@ -99,23 +100,33 @@ class QuestionVoteViewTests(TestCase):
     def test_votes_increment(self):
         question = create_question('question', -10)
         choice = create_choice(question, 'choice', 0)
+        login_client(self.client)
         self.client.post(reverse('polls:vote', args=(question.id,)),data={"choice":choice.id})
-        choice_after_vote = Choice.objects.get(pk=choice.id)
-        self.assertEqual(choice_after_vote.votes, 1)
+        choice.refresh_from_db()
+        self.assertEqual(choice.votes, 1)
 
     def test_votes_dont_increment_for_future_questions(self):
         question = create_question('question', 10)
         choice = create_choice(question, 'choice', 0)
+        login_client(self.client)
         response = self.client.post(reverse('polls:vote', args=(question.id,)),data={"choice":choice.id})
-        choice_after_vote = Choice.objects.get(pk=choice.id)
-        self.assertEqual(choice_after_vote.votes, 0)
+        choice.refresh_from_db()
+        self.assertEqual(choice.votes, 0)
         self.assertContains(response, VoteView.vote_future_question_message)
 
     def test_error_message_is_displayed_if_no_choice_made(self):
         question = create_question("question", -1)
         choice = create_choice(question, 'choice', 0)
+        login_client(self.client)
         response = self.client.post(reverse('polls:vote', args=(question.id,)))
-        choice_after_vote = Choice.objects.get(pk=choice.id)
-        self.assertEqual(choice_after_vote.votes, 0)
+        choice.refresh_from_db()
+        self.assertEqual(choice.votes, 0)
         self.assertContains(response, VoteView.no_choice_made_message)
 
+    def test_unauthorized_error_message_if_vote_while_logged_out(self):
+        question = create_question('question', -1)
+        choice = create_choice(question, 'choice,', 0)
+        response = self.client.post(reverse('polls:vote', args=(question.id,)),data={"choice":choice.id})
+        choice.refresh_from_db()
+        self.assertContains(response, VoteView.must_be_authorized_to_vote_message, status_code=401)
+        self.assertEqual(choice.votes, 0)

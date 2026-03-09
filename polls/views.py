@@ -32,16 +32,20 @@ class ResultsView(generic.DetailView):
         template_name = "polls/results.html"
 
 class VoteView(View):
+    must_be_authorized_to_vote_message = 'You must authorize to vote'
     vote_future_question_message = "Cant vote for future question."
     no_choice_made_message = 'You did not make choice'
     def post(self, request, question_id):
+        question = get_object_or_404(Question, pk=question_id)
+
+        if not request.user.is_authenticated:
+            return render(request, 'polls/detail.html',context={'question': question, 'error_message':VoteView.must_be_authorized_to_vote_message}, status=401)
         try:
             choice_id = request.POST["choice"]
             choice = get_object_or_404(Choice, pk=choice_id)
             if choice.question.is_pub_date_future():
                 return HttpResponse(VoteView.vote_future_question_message)
         except KeyError:
-            question = get_object_or_404(Question, pk=question_id)
             return render(request,"polls/detail.html",{"question": question, "error_message":VoteView.no_choice_made_message})
         choice.votes = F("votes") + 1
         choice.save()
