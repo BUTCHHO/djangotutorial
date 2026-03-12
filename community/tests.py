@@ -107,6 +107,7 @@ class PostDetailViewTests(TestCase):
     def test_post_like_increment(self):
         post = create_post(-1)
         post_likes_before = post.likes
+        login_client(self.client)
         response = self.client.post(reverse("community:like", args=(post.id,)))
         post.refresh_from_db()
         self.assertEqual(response.status_code, 200)
@@ -115,25 +116,33 @@ class PostDetailViewTests(TestCase):
     def test_post_like_increment_being_displayed(self):
         post = create_post(-1)
         post_likes_before = post.likes
+        login_client(self.client)
         response = self.client.post(reverse('community:like', args=(post.id,)))
         post.refresh_from_db()
-        self.assertEqual(response.context['post'].likes, post_likes_before+1)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        self.assertJSONEqual(response.content, {'result':'success', 'likes':post_likes_before+1})
+        response_after_like = self.client.get(reverse('community:detail', args=(post.id,)))
+        self.assertEqual(response_after_like.context['post'].likes, post_likes_before+1)
 
     def test_post_dislike_increment(self):
         post = create_post(-1)
         post_dislikes_before = post.dislikes
+        login_client(self.client)
         response = self.client.post(reverse("community:dislike", args=(post.id,)))
         post.refresh_from_db()
-        self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(response.content,{'result':'success', 'dislikes':post_dislikes_before+1})
         self.assertEqual(post.dislikes, post_dislikes_before+1)
 
     def test_post_dislike_increment_being_displayed(self):
         post = create_post(-1)
         post_dislikes_before = post.dislikes
+        login_client(self.client)
         response = self.client.post(reverse('community:dislike', args=(post.id,)))
         post.refresh_from_db()
-        self.assertEqual(response.context['post'].dislikes, post_dislikes_before+1)
-
+        self.assertEqual(response['Content-Type'], 'application/json')
+        self.assertJSONEqual(response.content,{'result':'success', 'dislikes':post_dislikes_before+1})
+        response_after_dislike = self.client.get(reverse('community:detail', args=(post.id,)))
+        self.assertEqual(response_after_dislike.context['post'].dislikes, post_dislikes_before+1)
 class CommentCreationViewTest(TestCase):
     def test_new_comment_being_displayed(self):
         post = create_post(-1)
@@ -166,6 +175,7 @@ class CommentCreationViewTest(TestCase):
         post = create_post(-1)
         response = self.client.post(reverse('community:create_comment', args=(post.id,)), data={'comment_content':'content'})
         post.refresh_from_db()
-        print(response)
         self.assertEqual(post.comment_set.count(), 0)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 302)
+        login_page_redirect_response = self.client.get(response.url)
+        self.assertContains(login_page_redirect_response, 'login')

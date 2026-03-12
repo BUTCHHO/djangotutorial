@@ -53,13 +53,13 @@ class DislikeView(LoginRequiredMixin, View):
     def post(self, request, post_id):
         post = get_object_or_404(Post, pk=post_id)
         if post.is_pub_date_future():
-            return JsonResponse({'result':'failure','message':'No posts available to dislike'}, status=404)
+            return JsonResponse({'result':'failure','message':'No posts available to dislike'}, status=404, content_type='application/json')
         post.dislikes = F("dislikes") + 1
         post.save()
         return JsonResponse(
             {'result':'success',
              'dislikes':post.dislikes,
-             }
+             },
         )
 
 
