@@ -1,0 +1,5 @@
+<form class="user_creation_form" action="{% url 'accounts:create_account' %}", method="post">
+    {% csrf_token %}
+    {{form}}
+    <button type="submit">create account</button>
+</form>
