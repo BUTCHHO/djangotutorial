@@ -1,4 +1,4 @@
-from utils.test.create_user import create_user
+from common.utils.test.create_user import create_user
 
 def login_client(client):
     user = create_user()

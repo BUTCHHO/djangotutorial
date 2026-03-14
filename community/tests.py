@@ -7,11 +7,12 @@ from django.shortcuts import reverse
 
 from .models import Post, Comment
 
-from .views import IndexView, DetailView, CreateCommentView
+from .views import IndexView, DetailView,CreateCommentView
 
 from accounts.models import User
 
-from utils.test.login_client import login_client
+from common.utils.test.login_client import login_client
+from common.constants import Result, Message
 
 
 def create_post(days, title='post', content='post content', views=0, likes=0, dislikes=0):
@@ -73,7 +74,7 @@ class PostIndexViewTests(TestCase):
     def test_future_post_not_displayed(self):
         create_post(days=10)
         response = self.client.get(reverse('community:index'))
-        self.assertContains(response, IndexView.no_posts_message)
+        self.assertContains(response, Message.COMMUNITY_NO_POSTS)
 
     def test_past_post_displayed(self):
         post = create_post(days=-10)
@@ -102,7 +103,7 @@ class PostDetailViewTests(TestCase):
     def test_future_post_not_displayed(self):
         post = create_post(1)
         response = self.client.get(reverse('community:detail', args=(post.id,)))
-        self.assertContains(response, DetailView.no_post_available_message)
+        self.assertContains(response, Message.COMMUNITY_NO_POSTS)
 
     def test_post_like_increment(self):
         post = create_post(-1)
@@ -120,7 +121,7 @@ class PostDetailViewTests(TestCase):
         response = self.client.post(reverse('community:like', args=(post.id,)))
         post.refresh_from_db()
         self.assertEqual(response['Content-Type'], 'application/json')
-        self.assertJSONEqual(response.content, {'result':'success', 'likes':post_likes_before+1})
+        self.assertJSONEqual(response.content, {Result():Result.SUCCESS, 'likes':post_likes_before+1})
         response_after_like = self.client.get(reverse('community:detail', args=(post.id,)))
         self.assertEqual(response_after_like.context['post'].likes, post_likes_before+1)
 
@@ -130,7 +131,7 @@ class PostDetailViewTests(TestCase):
         login_client(self.client)
         response = self.client.post(reverse("community:dislike", args=(post.id,)))
         post.refresh_from_db()
-        self.assertJSONEqual(response.content,{'result':'success', 'dislikes':post_dislikes_before+1})
+        self.assertJSONEqual(response.content,{Result():Result.SUCCESS, 'dislikes':post_dislikes_before+1})
         self.assertEqual(post.dislikes, post_dislikes_before+1)
 
     def test_post_dislike_increment_being_displayed(self):
@@ -140,7 +141,7 @@ class PostDetailViewTests(TestCase):
         response = self.client.post(reverse('community:dislike', args=(post.id,)))
         post.refresh_from_db()
         self.assertEqual(response['Content-Type'], 'application/json')
-        self.assertJSONEqual(response.content,{'result':'success', 'dislikes':post_dislikes_before+1})
+        self.assertJSONEqual(response.content,{Result():Result.SUCCESS, 'dislikes':post_dislikes_before+1})
         response_after_dislike = self.client.get(reverse('community:detail', args=(post.id,)))
         self.assertEqual(response_after_dislike.context['post'].dislikes, post_dislikes_before+1)
 class CommentCreationViewTest(TestCase):
@@ -150,8 +151,9 @@ class CommentCreationViewTest(TestCase):
         login_client(self.client)
         response = self.client.post(reverse('community:create_comment', args=(post.id,)),data={'comment_content': comment_content})
         post.refresh_from_db()
-        self.assertEqual(response.json()['result'], 'success')
+        self.assertJSONEqual(response.content, {Result(): Result.SUCCESS})
         self.assertEqual(post.comment_set.count(), 1)
+
     def test_future_posts_are_not_commentable(self):
         post = create_post(1)
         comment_content = 'comment for future post'
@@ -161,7 +163,7 @@ class CommentCreationViewTest(TestCase):
         self.assertEqual(post.comment_set.count(), 0)
         self.assertEqual(response.status_code, 404)
         self.assertNotContains(response, comment_content, status_code=404)
-        self.assertContains(response, CreateCommentView.cant_comment_future_posts_message, status_code=404)
+        self.assertContains(response, Message.COMMUNITY_NO_POSTS, status_code=404)
 
     def test_error_message_displayed_if_comment_content_empty(self):
         post = create_post(-1)
@@ -169,7 +171,7 @@ class CommentCreationViewTest(TestCase):
         response = self.client.post(reverse('community:create_comment', args=(post.id,)))
         post.refresh_from_db()
         self.assertEqual(post.comment_set.count(), 0)
-        self.assertContains(response, CreateCommentView.empty_comment_content_message)
+        self.assertContains(response, Message.COMMUNITY_EMPTY_COMMENT_CONTENT, status_code=422)
 
     def test_cant_comment_if_not_logged(self):
         post = create_post(-1)

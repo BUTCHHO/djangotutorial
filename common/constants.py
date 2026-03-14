@@ -13,6 +13,9 @@ class Message(Constant):
     ACCOUNTS_WRONG_PSW_OR_USERNAME = 'wrong password or username'
     ACCOUNTS_PASSWORDS_MUST_BE_SAME = 'password must be same'
 
+    COMMUNITY_NO_POSTS = "No posts are available"
+    COMMUNITY_EMPTY_COMMENT_CONTENT = "Comment content cant be empty"
+
 class Result(Constant):
     SUCCESS = 'success'
     FAILURE = 'failure'

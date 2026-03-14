@@ -9,7 +9,7 @@ from .models import Question, Choice
 
 from accounts.models import User
 
-from utils.test.login_client import login_client
+from common.utils.test.login_client import login_client
 
 def create_question(question_text, days):
     date = timezone.now() + timedelta(days=days)
