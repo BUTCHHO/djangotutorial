@@ -10,6 +10,8 @@ from .models import Question, Choice
 from accounts.models import User
 
 from common.utils.test.login_client import login_client
+from common.constants import Message, Result
+
 
 def create_question(question_text, days):
     date = timezone.now() + timedelta(days=days)
@@ -40,12 +42,12 @@ class QuestionIndexViewTests(TestCase):
     def test_no_questions(self):
         response = self.client.get(reverse("polls:index"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, IndexView.no_polls_message)
+        self.assertContains(response, Message.POLLS_NO_POLLS_AVAILABLE)
 
     def test_future_questions_not_displayed(self):
         create_question("future_question", 10)
         response = self.client.get(reverse("polls:index"))
-        self.assertContains(response, IndexView.no_polls_message)
+        self.assertContains(response, Message.POLLS_NO_POLLS_AVAILABLE)
 
     def test_past_question_displayed(self):
         past_question = create_question("past_question", -1)
@@ -84,7 +86,7 @@ class QuestionDetailViewTests(TestCase):
     def test_no_choice_message_displayed_if_no_choice(self):
         question = create_question("past question", -10)
         response = self.client.get(reverse("polls:detail", args=(question.id,)))
-        self.assertContains(response, DetailView.no_choice_message)
+        self.assertContains(response, Message.POLLS_NO_CHOICE_AVAILABLE)
         self.assertIs(response.context['question'].choice_set.exists(), False)
 
     def test_choices_displayed_without_no_choice_message(self):
@@ -92,7 +94,7 @@ class QuestionDetailViewTests(TestCase):
         choice_1 = create_choice(question, 'choice 1', 0)
         choice_2 = create_choice(question, "choice 2", 0)
         response = self.client.get(reverse('polls:detail', args=(question.id,)))
-        self.assertNotContains(response, DetailView.no_choice_message)
+        self.assertNotContains(response, Message.POLLS_NO_CHOICE_AVAILABLE)
         self.assertContains(response, choice_1.choice_text)
         self.assertContains(response, choice_2.choice_text)
 
@@ -112,7 +114,7 @@ class QuestionVoteViewTests(TestCase):
         response = self.client.post(reverse('polls:vote', args=(question.id,)),data={"choice":choice.id})
         choice.refresh_from_db()
         self.assertEqual(choice.votes, 0)
-        self.assertContains(response, VoteView.vote_future_question_message)
+        self.assertContains(response, Message.POLLS_NO_POLLS_AVAILABLE, status_code=404)
 
     def test_error_message_is_displayed_if_no_choice_made(self):
         question = create_question("question", -1)
@@ -121,12 +123,14 @@ class QuestionVoteViewTests(TestCase):
         response = self.client.post(reverse('polls:vote', args=(question.id,)))
         choice.refresh_from_db()
         self.assertEqual(choice.votes, 0)
-        self.assertContains(response, VoteView.no_choice_made_message)
+        self.assertContains(response, Message.POLLS_NO_CHOICE_MADE)
 
     def test_unauthorized_error_message_if_vote_while_logged_out(self):
         question = create_question('question', -1)
         choice = create_choice(question, 'choice,', 0)
         response = self.client.post(reverse('polls:vote', args=(question.id,)),data={"choice":choice.id})
         choice.refresh_from_db()
-        self.assertContains(response, VoteView.must_be_authorized_to_vote_message, status_code=401)
+        self.assertEqual(response.status_code, 302)
         self.assertEqual(choice.votes, 0)
+        response_after_redirect = self.client.get(response.url)
+        self.assertContains(response_after_redirect, 'login')

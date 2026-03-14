@@ -7,7 +7,7 @@ from django.shortcuts import reverse
 
 from .models import Post, Comment
 
-from .views import IndexView, DetailView,CreateCommentView
+from .views import IndexView
 
 from accounts.models import User
 

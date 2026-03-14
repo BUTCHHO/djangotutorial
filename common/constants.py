@@ -8,6 +8,10 @@ class Constant(metaclass=ConstantMeta):
     ...
 
 class Message(Constant):
+
+    # example
+    # %APP_NAME%_%MESSAGE_NAME% = '%message detail%'
+
     ACCOUNTS_USERNAME_PASSWORD_UNFILLED = 'user name and password fiends must be filled'
     ACCOUNTS_SUCCESS_LOGGED_IN = 'successfully logged in'
     ACCOUNTS_WRONG_PSW_OR_USERNAME = 'wrong password or username'
@@ -15,6 +19,11 @@ class Message(Constant):
 
     COMMUNITY_NO_POSTS = "No posts are available"
     COMMUNITY_EMPTY_COMMENT_CONTENT = "Comment content cant be empty"
+
+    POLLS_NO_POLLS_AVAILABLE = "No polls available."
+    POLLS_NO_CHOICE_AVAILABLE = "No choices available for this question"
+    POLLS_NO_CHOICE_MADE = 'You did not make choice'
+
 
 class Result(Constant):
     SUCCESS = 'success'

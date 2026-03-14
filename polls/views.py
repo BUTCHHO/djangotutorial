@@ -1,6 +1,10 @@
 from django.shortcuts import render, reverse, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse
 from django.utils import timezone
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+from common.constants import Message
+from common.shortcuts import failure_json_response, success_json_response
 from .models import Question, Choice
 from django.db.models import F
 from django.views import generic, View
@@ -9,9 +13,7 @@ class IndexView(generic.ListView):
     template_name = "polls/index.html"
     context_object_name = "latest_question_list"
 
-    no_polls_message = "No polls available."
-
-    extra_context = {"no_polls_message": no_polls_message}
+    extra_context = {"no_polls_message": Message.POLLS_NO_POLLS_AVAILABLE}
 
     queryset_offset = 5
 
@@ -21,8 +23,7 @@ class IndexView(generic.ListView):
 class DetailView(generic.DetailView):
     model = Question
     template_name = "polls/detail.html"
-    no_choice_message = "No choices available for this question"
-    extra_context = {"no_choice_message": no_choice_message}
+    extra_context = {"no_choice_message": Message.POLLS_NO_CHOICE_AVAILABLE}
 
     def get_queryset(self):
         return Question.objects.filter(pub_date__lte = timezone.now())
@@ -31,24 +32,17 @@ class ResultsView(generic.DetailView):
         model = Question
         template_name = "polls/results.html"
 
-class VoteView(View):
-    must_be_authorized_to_vote_message = 'You must authorize to vote'
-    vote_future_question_message = "Cant vote for future question."
-    no_choice_made_message = 'You did not make choice'
+class VoteView(LoginRequiredMixin, View):
     def post(self, request, question_id):
-        question = get_object_or_404(Question, pk=question_id)
-
-        if not request.user.is_authenticated:
-            return render(request, 'polls/detail.html',context={'question': question, 'error_message':VoteView.must_be_authorized_to_vote_message}, status=401)
         try:
             choice_id = request.POST["choice"]
             choice = get_object_or_404(Choice, pk=choice_id)
             if choice.question.is_pub_date_future():
-                return HttpResponse(VoteView.vote_future_question_message)
+                return failure_json_response(Message.POLLS_NO_POLLS_AVAILABLE, status=404)
         except KeyError:
-            return render(request,"polls/detail.html",{"question": question, "error_message":VoteView.no_choice_made_message})
+            return failure_json_response(Message.POLLS_NO_CHOICE_MADE)
         choice.votes = F("votes") + 1
         choice.save()
-        return HttpResponseRedirect(reverse("polls:results", args=(question_id,)))
+        return success_json_response()
 
 
