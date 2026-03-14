@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
-from django.urls import reverse
+from os import environ
 
 from django.conf.global_settings import AUTH_USER_MODEL
 
@@ -23,12 +23,12 @@ LOGIN_URL = '/accounts/login'
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-hv07ce#3e2=$vf#5hd-h&k@htbn*t9b82b@vurjvkiqji6^dp9'
+SECRET_KEY = environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(int(environ.get('DEBUG')))
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = environ.get('DJANGO_ALLOWED_HOSTS', "127.0.0.1").split(",")
 
 
 # Application definition
@@ -80,12 +80,19 @@ WSGI_APPLICATION = 'djangotutorial.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': environ.get('DATABASE_NAME'),
+        'USER': environ.get('DATABASE_USERNAME'),
+        'PASSWORD': environ.get('DATABASE_PASSWORD'),
+        'HOST': environ.get('DATABASE_HOST'),
+        'PORT': environ.get('DATABASE_PORT'),
     }
 }
 
 AUTH_USER_MODEL = 'accounts.User'
+
 
 
 
@@ -125,3 +132,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static'
+print('DEBUG', DEBUG)
+print("DATABASE_USERNAME:", environ.get('DATABASE_USERNAME'))
+print("DATABASE_PASSWORD:", environ.get('DATABASE_PASSWORD'))
+print("SECRET_KEY exists:", bool(environ.get('DJANGO_SECRET_KEY')))
+
+print('STATIC URL: ', STATIC_URL)
