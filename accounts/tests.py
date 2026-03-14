@@ -3,7 +3,7 @@ from django.shortcuts import reverse
 
 from .models import User
 
-from .views import CreateAccountView, LogoutView, LoginView
+from constants import Message, Result
 
 
 def create_user(username, email='johndoe@example.com'):
@@ -35,7 +35,7 @@ class CreateAccountVIewTest(TestCase):
         username = 'user_name'
         password = 'psw_123123'
         response = self.client.post(reverse('accounts:create_account'), data={'username':username, 'password1':password, 'password2':password})
-        self.assertJSONEqual(response.content, {'result':'success'})
+        self.assertJSONEqual(response.content, {Result(): Result.SUCCESS})
         user = User.objects.filter(username=username).first()
         self.assertIsNotNone(user)
 
@@ -45,13 +45,13 @@ class CreateAccountVIewTest(TestCase):
         password2 = 'psw_1231233'
         response = self.client.post(reverse('accounts:create_account'), data={'username':username, 'password1':password1, 'password2':password2})
         self.assertEqual(response.status_code, 400)
-        self.assertJSONEqual(response.content, {'result':'failure', 'message':'password must be same'})
+        self.assertJSONEqual(response.content, {Result():Result.FAILURE, Message():Message.ACCOUNTS_PASSWORDS_MUST_BE_SAME})
         user = User.objects.filter(username=username).first()
         self.assertIsNone(user)
 
     def test_user_is_not_created_if_fields_unfilled(self):
         response = self.client.post(reverse('accounts:create_account'))
         self.assertEqual(response.status_code, 422)
-        self.assertJSONEqual(response.content, {'result':'failure','message':'user name and password fiends must be filled'})
+        self.assertJSONEqual(response.content, {Result():Result.FAILURE, Message():Message.ACCOUNTS_USERNAME_PASSWORD_UNFILLED})
         users = User.objects.all()
         self.assertFalse(users.exists())
