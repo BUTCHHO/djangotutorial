@@ -1,6 +1,10 @@
 from django.test import TestCase
+from django.shortcuts import reverse
 
 from .models import User
+
+from .views import CreateAccountView, LogoutView, LoginView
+
 
 def create_user(username, email='johndoe@example.com'):
     return User.objects.create(
@@ -25,3 +29,29 @@ class UserModelTest(TestCase):
     def test_get_testificate_user_returns_testificate(self):
         testificate_user = User.get_testificate_user()
         self.assertEqual(testificate_user.username, 'Testificate user')
+
+class CreateAccountVIewTest(TestCase):
+    def test_user_is_created_if_all_fields_filled_with_valid_data(self):
+        username = 'user_name'
+        password = 'psw_123123'
+        response = self.client.post(reverse('accounts:create_account'), data={'username':username, 'password1':password, 'password2':password})
+        self.assertJSONEqual(response.content, {'result':'success'})
+        user = User.objects.filter(username=username).first()
+        self.assertIsNotNone(user)
+
+    def test_user_is_not_created_if_passwords_not_same(self):
+        username = 'user_name'
+        password1 = 'psw_123123'
+        password2 = 'psw_1231233'
+        response = self.client.post(reverse('accounts:create_account'), data={'username':username, 'password1':password1, 'password2':password2})
+        self.assertEqual(response.status_code, 400)
+        self.assertJSONEqual(response.content, {'result':'failure', 'message':'password must be same'})
+        user = User.objects.filter(username=username).first()
+        self.assertIsNone(user)
+
+    def test_user_is_not_created_if_fields_unfilled(self):
+        response = self.client.post(reverse('accounts:create_account'))
+        self.assertEqual(response.status_code, 422)
+        self.assertJSONEqual(response.content, {'result':'failure','message':'user name and password fiends must be filled'})
+        users = User.objects.all()
+        self.assertFalse(users.exists())

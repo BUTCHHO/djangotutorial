@@ -39,13 +39,14 @@ class CreateAccountView(View):
             password1=request.POST['password1']
             password2=request.POST['password2']
         except KeyError:
-            return JsonResponse({'result':'failure', 'message':"user name and password fiends must be filled"})
+            return JsonResponse({'result':'failure', 'message':"user name and password fiends must be filled"}, status=422)
         if password1 != password2:
-            return JsonResponse({'result':'failure','message':'password must be same'})
+            return JsonResponse({'result':'failure','message':'password must be same'}, status=400)
         User.objects.create_user(
             username=username,
             password=password1
         )
         return JsonResponse({'result':'success'})
+
     def get(self, request):
         return render(request, 'accounts/create_account.html', {'form':user_creation_form})
