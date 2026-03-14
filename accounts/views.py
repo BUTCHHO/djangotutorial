@@ -7,7 +7,8 @@ from django.views import View
 
 from .models import User
 
-from constants import Result, Message
+from common.constants import Result, Message
+from common.shortcuts import success_json_response, failure_json_response
 
 
 class LogoutView(LoginRequiredMixin, View):
@@ -16,7 +17,7 @@ class LogoutView(LoginRequiredMixin, View):
 
     def post(self, request):
         logout(request)
-        return JsonResponse({Result(): Result.SUCCESS})
+        return success_json_response()
 
 class LoginView(View):
     def post(self, request):
@@ -24,13 +25,13 @@ class LoginView(View):
             username = request.POST['username']
             password = request.POST['password']
         except KeyError:
-            return JsonResponse({Result():Result.FAILURE, Message():Message.ACCOUNTS_USERNAME_PASSWORD_UNFILLED})
+            return failure_json_response(Message.ACCOUNTS_USERNAME_PASSWORD_UNFILLED, status=422)
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return JsonResponse({Result():Result.SUCCESS, Message():Message.ACCOUNTS_SUCCESS_LOGGED_IN})
+            return success_json_response(Message.ACCOUNTS_SUCCESS_LOGGED_IN)
         else:
-            return JsonResponse({Result():Result.FAILURE, Message():Message.ACCOUNTS_WRONG_PSW_OR_USERNAME})
+            return failure_json_response(Message.ACCOUNTS_WRONG_PSW_OR_USERNAME)
 
 
     def get(self, request):
@@ -43,14 +44,14 @@ class CreateAccountView(View):
             password1=request.POST['password1']
             password2=request.POST['password2']
         except KeyError:
-            return JsonResponse({Result(): Result.FAILURE, Message(): Message.ACCOUNTS_USERNAME_PASSWORD_UNFILLED}, status=422)
+            return failure_json_response(Message.ACCOUNTS_USERNAME_PASSWORD_UNFILLED, status=422)
         if password1 != password2:
-            return JsonResponse({Result(): Result.FAILURE, Message(): Message.ACCOUNTS_PASSWORDS_MUST_BE_SAME}, status=400)
+            return failure_json_response(Message.ACCOUNTS_PASSWORDS_MUST_BE_SAME, status=400)
         User.objects.create_user(
             username=username,
             password=password1
         )
-        return JsonResponse({Result(): Result.SUCCESS})
+        return success_json_response()
 
     def get(self, request):
         return render(request, 'accounts/create_account.html', {'form':user_creation_form})

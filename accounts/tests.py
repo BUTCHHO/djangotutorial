@@ -3,7 +3,7 @@ from django.shortcuts import reverse
 
 from .models import User
 
-from constants import Message, Result
+from common.constants import Message, Result
 
 
 def create_user(username, email='johndoe@example.com'):
