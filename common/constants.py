@@ -23,7 +23,9 @@ class Message(Constant):
     POLLS_NO_POLLS_AVAILABLE = "No polls available."
     POLLS_NO_CHOICE_AVAILABLE = "No choices available for this question"
     POLLS_NO_CHOICE_MADE = 'You did not make choice'
-
+    POLLS_INVALID_QUESTION_FIELD = 'Question form was not filled correctly'
+    POLLS_INVALID_CHOICE_FIELD = 'Make sure that all choices are filled correctly'
+    POLLS_LESS_THAN_TWO_CHOICES = "Question cant have less than 2 choices"
 
 class Result(Constant):
     SUCCESS = 'success'

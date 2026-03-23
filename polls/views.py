@@ -59,4 +59,34 @@ class CreateView(LoginRequiredMixin, View):
         return render(request, 'polls/create_question.html', context=context_data)
 
 
+    def post(self, request):
+        user = request.user
+        question_form = QuestionCreationForm(request.POST)
+        choices = request.POST.getlist('choice_text')
+        if not question_form.is_valid():
+            return failure_json_response(Message.POLLS_INVALID_QUESTION_FIELD)
+
+        question_text =  question_form.cleaned_data['text']
+        for text in choices:
+            if text == '' or text is None:
+                return failure_json_response(Message.POLLS_INVALID_CHOICE_FIELD)
+        if len(choices) < 2:
+            return failure_json_response(Message.POLLS_LESS_THAN_TWO_CHOICES)
+
+        question = Question(
+            text=question_text,
+            author=user
+        )
+        question.save()
+
+        for text in choices:
+            choice = Choice(
+                question=question,
+                choice_text=text,
+            )
+
+            choice.save()
+
+        return success_json_response()
+
 
