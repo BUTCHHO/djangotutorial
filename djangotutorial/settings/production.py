@@ -1,11 +1,11 @@
-
 from .base import *
-print('IMPORTED PRODUCTION')
+from os import environ
+SECRET_KEY = environ.get('DJANGO_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = environ.get('DJANGO_ALLOWED_HOSTS', "127.0.0.1").split(",")
-
+ALLOWED_HOSTS = environ.get('DJANGO_ALLOWED_HOSTS').split(',')
+print('ALLOWED HOSTS: ', ALLOWED_HOSTS, type(ALLOWED_HOSTS))
 
 DATABASES = {
     'default': {
