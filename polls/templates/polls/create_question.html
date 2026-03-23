@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Question with Choices</title>
+</head>
+<body>
+    <h1>Create New Question</h1>
+
+    <form method="post" id="questionForm">
+        {% csrf_token %}
+
+        <h2>Question:</h2>
+        {{ question_form.as_p }}
+
+        <h2>Choices:</h2>
+
+        <div id="choicesContainer">
+            <div class="choice-item">
+                <label for="id_choice_text_0">Choice text:</label>
+                <input type="text" name="choice_text" id="id_choice_text_0">
+            </div>
+        </div>
+
+        <br>
+        <button type="button" onclick="addChoice()">Add Another Choice</button>
+        <input type="submit" name="save_question" value="Save Question">
+    </form>
+
+    <script>
+        let choiceCount = 1;
+
+        function addChoice() {
+            const container = document.getElementById('choicesContainer');
+            const newChoice = document.createElement('div');
+            newChoice.className = 'choice-item';
+            newChoice.innerHTML = `
+                <label for="id_choice_text_${choiceCount}">Choice text:</label>
+                <input type="text" name="choice_text" id="id_choice_text_${choiceCount}">
+                <button type="button" onclick="removeChoice(this)">Remove</button>
+            `;
+            container.appendChild(newChoice);
+            choiceCount++;
+        }
+
+        function removeChoice(button) {
+            const choiceItem = button.parentElement;
+            choiceItem.remove();
+        }
+    </script>
+</body>
+</html>

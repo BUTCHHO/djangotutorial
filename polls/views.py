@@ -1,13 +1,16 @@
-from django.shortcuts import render, reverse, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponse
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import F
+from django.views import generic, View
+from django.shortcuts import render
 
 from common.constants import Message
 from common.shortcuts import failure_json_response, success_json_response
+
 from .models import Question, Choice
-from django.db.models import F
-from django.views import generic, View
+from .forms import ChoiceCreationForm, QuestionCreationForm
+
 
 class IndexView(generic.ListView):
     template_name = "polls/index.html"
@@ -44,5 +47,16 @@ class VoteView(LoginRequiredMixin, View):
         choice.votes = F("votes") + 1
         choice.save()
         return success_json_response()
+
+class CreateView(LoginRequiredMixin, View):
+    def get(self, request):
+        question_creation_form = QuestionCreationForm()
+        choice_creation_form = ChoiceCreationForm()
+        context_data={
+            'question_form': question_creation_form,
+            'choice_form': choice_creation_form
+        }
+        return render(request, 'polls/create_question.html', context=context_data)
+
 
 
