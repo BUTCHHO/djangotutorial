@@ -134,3 +134,34 @@ class QuestionVoteViewTests(TestCase):
         self.assertEqual(choice.votes, 0)
         response_after_redirect = self.client.get(response.url)
         self.assertContains(response_after_redirect, 'login')
+
+class PollCreateViewTests(TestCase):
+    def test_poll_is_created_if_fields_filled_correctly(self):
+        question_text='smells like ...'
+        choice_1_text='teen spirit'
+        choice_2_text='lost cherry'
+        data = {
+            'text': question_text,
+            'choice_text': [choice_1_text, choice_2_text]
+        }
+
+        login_client(self.client)
+        response = self.client.post(reverse('polls:create'),data=data)
+        self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(response.content, {Result(): Result.SUCCESS})
+
+        question = Question.objects.get(text=question_text)
+        self.assertEqual(question.choice_set.count(), 2)
+
+    def test_poll_is_not_created_if_question_text_unfilled(self):
+        choice_1_text = 'teen spirit'
+        choice_2_text = 'lost cherry'
+        data = {
+            'text': '',
+            'choice_text': [choice_1_text, choice_2_text]
+        }
+        login_client(self.client)
+        response = self.client.post(reverse('polls:create'), data=data)
+        self.assertJSONEqual(response.content, {Result():Result.FAILURE, Message(): Message.POLLS_INVALID_QUESTION_FIELD})
+        self.assertIsNone(Choice.objects.filter(choice_text=choice_1_text).first())
+        self.assertIsNone(Choice.objects.filter(choice_text=choice_2_text).first())
