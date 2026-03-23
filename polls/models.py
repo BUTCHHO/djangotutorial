@@ -7,7 +7,7 @@ from accounts.models import User
 
 class Question(models.Model):
     text = models.CharField(max_length=128)
-    pub_date = models.DateTimeField('date published')
+    pub_date = models.DateTimeField('date published', default=timezone.now)
     author = models.ForeignKey('accounts.User', on_delete=models.SET(User.get_deleted_user))
 
     def __str__(self):
@@ -29,7 +29,6 @@ class Choice(models.Model):
     question = models.ForeignKey(Question, models.CASCADE)
     choice_text = models.CharField(max_length=64)
     votes = models.IntegerField(default=0)
-    author = models.ForeignKey('accounts.User', on_delete=models.SET(User.get_deleted_user))
 
     def __str__(self):
         return self.choice_text
