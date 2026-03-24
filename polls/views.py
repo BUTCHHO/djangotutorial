@@ -37,6 +37,7 @@ class ResultsView(generic.DetailView):
 
 class VoteView(LoginRequiredMixin, View):
     def post(self, request, question_id):
+        user = request.user
         try:
             choice_id = request.POST["choice"]
             choice = get_object_or_404(Choice, pk=choice_id)
@@ -44,8 +45,10 @@ class VoteView(LoginRequiredMixin, View):
                 return failure_json_response(Message.POLLS_NO_POLLS_AVAILABLE, status=404)
         except KeyError:
             return failure_json_response(Message.POLLS_NO_CHOICE_MADE)
-        choice.votes = F("votes") + 1
-        choice.save()
+        if choice in user.polls_choices.all():
+            user.polls_choices.remove(choice)
+            return success_json_response(Message.POLLS_REMOVED_CHOICE)
+        user.polls_choices.add(choice)
         return success_json_response()
 
 class CreateView(LoginRequiredMixin, View):

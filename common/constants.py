@@ -27,6 +27,8 @@ class Message(Constant):
     POLLS_INVALID_CHOICE_FIELD = 'Make sure that all choices are filled correctly'
     POLLS_LESS_THAN_ALLOWED_CHOICES = "Question cant have less than 2 choices"
 
+    POLLS_REMOVED_CHOICE = "Your choice has been removed"
+
 class Result(Constant):
     SUCCESS = 'success'
     FAILURE = 'failure'

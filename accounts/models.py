@@ -1,8 +1,10 @@
-from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db.models import ManyToManyField
+
 
 class User(AbstractUser):
 
+    polls_choices = ManyToManyField('polls.Choice', default=None)
 
     @classmethod
     def get_testificate_user(cls):

@@ -18,7 +18,7 @@ def create_question(question_text, days):
     return Question.objects.create(text=question_text, pub_date=date, author=User.get_testificate_user())
 
 def create_choice(question, text, votes):
-     return Choice.objects.create(question=question, choice_text=text, votes=0)
+     return Choice.objects.create(question=question, choice_text=text)
 
 class QuestionModelTests(TestCase):
     def test_was_published_recently_with_recent_question(self):
@@ -134,6 +134,30 @@ class QuestionVoteViewTests(TestCase):
         self.assertEqual(choice.votes, 0)
         response_after_redirect = self.client.get(response.url)
         self.assertContains(response_after_redirect, 'login')
+
+    def test_choice_is_being_added_to_user_polls_choice_set(self):
+        question = create_question('question', -10)
+        choice = create_choice(question, 'choice', 0)
+        user = login_client(self.client)
+        self.client.post(reverse('polls:vote', args=(question.id,)),data={"choice":choice.id})
+        user.refresh_from_db()
+        self.assertEqual(list(user.polls_choices.all()), [choice])
+
+    def test_choice_is_being_removed_if_vote_twice(self):
+        question = create_question('question', -10)
+        choice = create_choice(question, 'choice', 0)
+        user = login_client(self.client)
+        self.client.post(reverse('polls:vote', args=(question.id,)),data={"choice":choice.id})
+        user.refresh_from_db()
+        choice.refresh_from_db()
+        self.assertEqual(choice.votes,1)
+        self.assertEqual(list(user.polls_choices.all()), [choice])
+        self.client.post(reverse('polls:vote', args=(question.id,)),data={"choice":choice.id})
+        user.refresh_from_db()
+        self.assertEqual(user.polls_choices.count(), 0)
+        choice.refresh_from_db()
+        self.assertEqual(choice.votes, 0)
+
 
 class PollCreateViewTests(TestCase):
     def test_poll_is_created_if_fields_filled_correctly(self):

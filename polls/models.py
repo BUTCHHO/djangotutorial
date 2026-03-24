@@ -29,7 +29,10 @@ class Question(models.Model):
 class Choice(models.Model):
     question = models.ForeignKey(Question, models.CASCADE)
     choice_text = models.CharField(max_length=64)
-    votes = models.IntegerField(default=0)
+
+    @property
+    def votes(self):
+        return self.user_set.count()
 
     def __str__(self):
         return self.choice_text
