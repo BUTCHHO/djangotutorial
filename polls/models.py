@@ -14,6 +14,7 @@ class Question(models.Model):
         return self.text
 
     recent_days = 1
+    min_choices = 2
 
     def was_published_recently(self):
         time_now = timezone.now()

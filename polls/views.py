@@ -70,8 +70,8 @@ class CreateView(LoginRequiredMixin, View):
         for text in choices:
             if text == '' or text is None:
                 return failure_json_response(Message.POLLS_INVALID_CHOICE_FIELD)
-        if len(choices) < 2:
-            return failure_json_response(Message.POLLS_LESS_THAN_TWO_CHOICES)
+        if len(choices) < Question.min_choices:
+            return failure_json_response(Message.POLLS_LESS_THAN_ALLOWED_CHOICES)
 
         question = Question(
             text=question_text,

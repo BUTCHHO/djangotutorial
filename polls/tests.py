@@ -154,14 +154,32 @@ class PollCreateViewTests(TestCase):
         self.assertEqual(question.choice_set.count(), 2)
 
     def test_poll_is_not_created_if_question_text_unfilled(self):
-        choice_1_text = 'teen spirit'
-        choice_2_text = 'lost cherry'
+        choices = []
+        for i in range(Question.min_choices):
+            choices.append(f"choice{i}")
         data = {
             'text': '',
-            'choice_text': [choice_1_text, choice_2_text]
+            'choice_text': choices
         }
         login_client(self.client)
         response = self.client.post(reverse('polls:create'), data=data)
         self.assertJSONEqual(response.content, {Result():Result.FAILURE, Message(): Message.POLLS_INVALID_QUESTION_FIELD})
-        self.assertIsNone(Choice.objects.filter(choice_text=choice_1_text).first())
-        self.assertIsNone(Choice.objects.filter(choice_text=choice_2_text).first())
+        self.assertIsNone(Choice.objects.filter(choice_text=choices[0]).first())
+        self.assertIsNone(Choice.objects.filter(choice_text=choices[1]).first())
+
+
+    def test_poll_is_not_created_if_not_enough_choices(self):
+        choices_amount = Question.min_choices-1
+        choices = []
+        for i in range(choices_amount):
+            choices.append(f"choice{i}")
+        question_text = 'super question'
+        data = {
+            "text": question_text,
+            "choice_text": choices
+        }
+        login_client(self.client)
+        response = self.client.post(reverse('polls:create'), data=data)
+        self.assertJSONEqual(response.content, {Result():Result.FAILURE, Message():Message.POLLS_LESS_THAN_ALLOWED_CHOICES})
+        self.assertIsNone(Question.objects.filter(text=question_text).first())
+
