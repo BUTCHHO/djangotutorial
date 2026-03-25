@@ -29,9 +29,7 @@ class DetailView(View):
         if post.is_pub_date_future():
             context = {"no_post_available_message": Message.COMMUNITY_NO_POSTS}
         else:
-            post.views = F("views") + 1
-            post.save()
-            post.refresh_from_db()
+            post.increment_view()
             context = {"post":post}
         return render(request, "community/detail.html", context)
 

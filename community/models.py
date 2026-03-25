@@ -16,6 +16,10 @@ class Post(models.Model):
 
     recent_days = 1
 
+    def increment_view(self):
+        self.views += 1
+        self.save()
+
     def was_published_recently(self):
         return timezone.now() >= self.pub_date >= timezone.now() - datetime.timedelta(Post.recent_days)
 
