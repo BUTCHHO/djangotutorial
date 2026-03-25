@@ -36,15 +36,24 @@ class ResultsView(generic.DetailView):
         template_name = "polls/results.html"
 
 class VoteView(LoginRequiredMixin, View):
-    def post(self, request, question_id):
-        user = request.user
+
+    def get_choice_and_return_failure_response_if_exists(self, request):
+        choice, failure_response = None, None
         try:
             choice_id = request.POST["choice"]
             choice = get_object_or_404(Choice, pk=choice_id)
             if choice.question.is_pub_date_future():
-                return failure_json_response(Message.POLLS_NO_POLLS_AVAILABLE, status=404)
+                failure_response = failure_json_response(Message.POLLS_NO_POLLS_AVAILABLE, status=404)
         except KeyError:
-            return failure_json_response(Message.POLLS_NO_CHOICE_MADE)
+            failure_response = failure_json_response(Message.POLLS_NO_CHOICE_MADE)
+
+        return choice, failure_response
+
+    def post(self, request, question_id):
+        user = request.user
+        choice, failure = self.get_choice_and_return_failure_response_if_exists(request)
+        if failure:
+            return failure
         if choice in user.polls_choices.all():
             user.polls_choices.remove(choice)
             return success_json_response(Message.POLLS_REMOVED_CHOICE)
