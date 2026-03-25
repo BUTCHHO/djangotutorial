@@ -39,9 +39,7 @@ class LikeView(LoginRequiredMixin, View):
         post = get_object_or_404(Post, pk=post_id)
         if post.is_pub_date_future():
             return failure_json_response(Message.COMMUNITY_NO_POSTS, status=404)
-        post.likes = F("likes") + 1
-        post.save()
-        post.refresh_from_db()
+        post.increment_likes()
         return JsonResponse({Result(): Result.SUCCESS, 'likes':post.likes})
 
 
@@ -50,8 +48,7 @@ class DislikeView(LoginRequiredMixin, View):
         post = get_object_or_404(Post, pk=post_id)
         if post.is_pub_date_future():
             failure_json_response(Message.COMMUNITY_NO_POSTS, status=404)
-        post.dislikes = F("dislikes") + 1
-        post.save()
+        post.increment_dislikes()
         return JsonResponse(
             {Result(): Result.SUCCESS,
              'dislikes':post.dislikes,

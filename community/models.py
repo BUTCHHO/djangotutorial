@@ -20,6 +20,14 @@ class Post(models.Model):
         self.views += 1
         self.save()
 
+    def increment_likes(self):
+        self.likes += 1
+        self.save()
+
+    def increment_dislikes(self):
+        self.dislikes += 1
+        self.save()
+
     def was_published_recently(self):
         return timezone.now() >= self.pub_date >= timezone.now() - datetime.timedelta(Post.recent_days)
 
