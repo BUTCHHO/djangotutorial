@@ -79,26 +79,28 @@ class CreateView(LoginRequiredMixin, View):
             return failure_json_response(Message.POLLS_INVALID_QUESTION_FIELD)
 
         question_text =  question_form.cleaned_data['text']
+        failure_json = self.validate_choices_and_return_failure_response_if_exists(choices)
+        if failure_json:
+            return failure_json
+
+        question = Question.objects.create(
+            text=question_text,
+            author=user
+        )
+
+        for text in choices:
+            Choice.objects.create(
+                question=question,
+                choice_text=text,
+            )
+
+
+        return success_json_response()
+
+
+    def validate_choices_and_return_failure_response_if_exists(self, choices):
         for text in choices:
             if text == '' or text is None:
                 return failure_json_response(Message.POLLS_INVALID_CHOICE_FIELD)
         if len(choices) < Question.min_choices:
             return failure_json_response(Message.POLLS_LESS_THAN_ALLOWED_CHOICES)
-
-        question = Question(
-            text=question_text,
-            author=user
-        )
-        question.save()
-
-        for text in choices:
-            choice = Choice(
-                question=question,
-                choice_text=text,
-            )
-
-            choice.save()
-
-        return success_json_response()
-
-
