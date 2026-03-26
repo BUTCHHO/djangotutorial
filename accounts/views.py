@@ -1,15 +1,21 @@
 from django.contrib.auth import logout, login, authenticate
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .forms import user_creation_form, authentication_form
-from django.http import JsonResponse
 from django.shortcuts import render
 from django.views import View
 
 from .models import User
 
-from common.constants import Result, Message
+from common.constants import Message
 from common.shortcuts import success_json_response, failure_json_response
 
+from time import perf_counter
+
+def check_logged_in_view(request):
+    user = request.user
+    if User.objects.filter(username=user.username).first():
+        return success_json_response()
+    return failure_json_response()
 
 class LogoutView(LoginRequiredMixin, View):
     def get(self, request):
@@ -47,10 +53,13 @@ class CreateAccountView(View):
             return failure_json_response(Message.ACCOUNTS_USERNAME_PASSWORD_UNFILLED, status=422)
         if password1 != password2:
             return failure_json_response(Message.ACCOUNTS_PASSWORDS_MUST_BE_SAME, status=400)
+        start = perf_counter()
         User.objects.create_user(
             username=username,
             password=password1
         )
+        end=perf_counter()
+        print('time took: ', end-start)
         return success_json_response()
 
     def get(self, request):

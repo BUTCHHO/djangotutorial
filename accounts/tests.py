@@ -4,15 +4,8 @@ from django.shortcuts import reverse
 from .models import User
 
 from common.constants import Message, Result
+from common.utils.test.create_user import create_user
 
-
-def create_user(username, email='johndoe@example.com'):
-    return User.objects.create(
-        username=username,
-        first_name='testificate',
-        last_name='user',
-        email=email
-    )
 
 class UserModelTest(TestCase):
     def test_get_deleted_user_returns_deleted_user(self):
@@ -30,7 +23,7 @@ class UserModelTest(TestCase):
         testificate_user = User.get_testificate_user()
         self.assertEqual(testificate_user.username, 'Testificate user')
 
-class CreateAccountVIewTest(TestCase):
+class AccountCreationTests(TestCase):
     def test_user_is_created_if_all_fields_filled_with_valid_data(self):
         username = 'user_name'
         password = 'psw_123123'
@@ -55,3 +48,21 @@ class CreateAccountVIewTest(TestCase):
         self.assertJSONEqual(response.content, {Result():Result.FAILURE, Message():Message.ACCOUNTS_USERNAME_PASSWORD_UNFILLED})
         users = User.objects.all()
         self.assertFalse(users.exists())
+
+class AccountLoginVIewTests(TestCase):
+    def test_login_if_data_valid(self):
+        username='Kurt Cobain'
+        password='1967'
+        create_user(username=username,password=password)
+        response = self.client.post(reverse('accounts:login'), data={'username':username, 'password':password})
+        self.assertJSONEqual(response.content, {Result(): Result.SUCCESS, Message():Message.ACCOUNTS_SUCCESS_LOGGED_IN})
+        response = self.client.get(reverse('accounts:check_login'))
+        self.assertJSONEqual(response.content, {Result(): Result.SUCCESS})
+
+    def test_login_fails_if_invalid_password(self):
+        username='Dave Grohl'
+        create_user(username=username)
+        response = self.client.post(reverse('accounts:login'), data={'username':username, 'password':'random foobar'})
+        self.assertJSONEqual(response.content, {Result():Result.FAILURE, Message(): Message.ACCOUNTS_WRONG_PSW_OR_USERNAME})
+        response = self.client.get(reverse('accounts:check_login'))
+        self.assertJSONEqual(response.content, {Result(): Result.FAILURE})

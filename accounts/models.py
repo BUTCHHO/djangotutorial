@@ -4,7 +4,7 @@ from django.db.models import ManyToManyField
 
 class User(AbstractUser):
 
-    polls_choices = ManyToManyField('polls.Choice', default=None)
+    polls_choices = ManyToManyField('polls.Choice')
 
     @classmethod
     def get_testificate_user(cls):

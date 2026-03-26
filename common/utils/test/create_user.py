@@ -1,6 +1,4 @@
 from accounts.models import User
 
-def create_user():
-    return User.objects.create_user('testificate', password='psw')
-
-
+def create_user(username='testificate', password='psw'):
+    return User.objects.create_user(username=username, password=password)
