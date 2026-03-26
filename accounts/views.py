@@ -53,13 +53,11 @@ class CreateAccountView(View):
             return failure_json_response(Message.ACCOUNTS_USERNAME_PASSWORD_UNFILLED, status=422)
         if password1 != password2:
             return failure_json_response(Message.ACCOUNTS_PASSWORDS_MUST_BE_SAME, status=400)
-        start = perf_counter()
         User.objects.create_user(
             username=username,
             password=password1
         )
         end=perf_counter()
-        print('time took: ', end-start)
         return success_json_response()
 
     def get(self, request):

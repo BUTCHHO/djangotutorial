@@ -66,3 +66,13 @@ class AccountLoginVIewTests(TestCase):
         self.assertJSONEqual(response.content, {Result():Result.FAILURE, Message(): Message.ACCOUNTS_WRONG_PSW_OR_USERNAME})
         response = self.client.get(reverse('accounts:check_login'))
         self.assertJSONEqual(response.content, {Result(): Result.FAILURE})
+
+    def test_login_fails_if_invalid_username(self):
+        password='l33t kr3w'
+        create_user(username='Krist Novoselic', password=password)
+        response = self.client.post(reverse('accounts:login'),
+                                    data={'username': 'random foobar', 'password': password})
+        self.assertJSONEqual(response.content,
+                             {Result(): Result.FAILURE, Message(): Message.ACCOUNTS_WRONG_PSW_OR_USERNAME})
+        response = self.client.get(reverse('accounts:check_login'))
+        self.assertJSONEqual(response.content, {Result(): Result.FAILURE})
