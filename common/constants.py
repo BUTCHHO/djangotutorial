@@ -26,8 +26,11 @@ class Message(Constant):
     POLLS_INVALID_QUESTION_FIELD = 'Question form was not filled correctly'
     POLLS_INVALID_CHOICE_FIELD = 'Make sure that all choices are filled correctly'
     POLLS_LESS_THAN_ALLOWED_CHOICES = "Question cant have less than 2 choices"
-
     POLLS_REMOVED_CHOICE = "Your choice has been removed"
+
+    FRIENDS_USER_DONT_EXISTS = 'User does not exists'
+    FRIENDS_CANT_SEND_REQUEST_TO_USER = "You cant send friend request to this user"
+    FRIENDS_REQUEST_ALREADY_SENT = "Friend request is already sent"
 
 class Result(Constant):
     SUCCESS = 'success'

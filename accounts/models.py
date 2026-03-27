@@ -5,6 +5,7 @@ from django.db.models import ManyToManyField
 class User(AbstractUser):
 
     polls_choices = ManyToManyField('polls.Choice')
+    friends = ManyToManyField('self', symmetrical=True)
 
     @classmethod
     def get_testificate_user(cls):

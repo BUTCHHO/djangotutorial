@@ -57,7 +57,6 @@ class CreateAccountView(View):
             username=username,
             password=password1
         )
-        end=perf_counter()
         return success_json_response()
 
     def get(self, request):

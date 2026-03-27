@@ -1,7 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import F
 from django.views import generic, View
 from django.shortcuts import render
 
