@@ -26,7 +26,7 @@ class FriendsIndexView(LoginRequiredMixin, View):
 class SendFriendRequestView(LoginRequiredMixin, View):
     def post(self, request):
         user = request.user
-        recipient_name = request.POST.get['recipient']
+        recipient_name = request.POST.get('recipient')
         if not recipient_name:
             return failure_json_response()
         try:

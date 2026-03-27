@@ -9,6 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 LOGIN_URL = '/accounts/login'
 
 INSTALLED_APPS = [
+    'friends.apps.FriendsConfig',
     'accounts.apps.AccountsConfig',
     'community.apps.CommunityConfig',
     'polls.apps.PollsConfig',
